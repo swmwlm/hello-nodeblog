@@ -33,7 +33,9 @@ block content
                     each comment in post.comments
                         div.post-comment-item
                             h4.post-comment-email= comment.email
-                                small.pull-right= moment(comment.created).format('YYYY-MM-DD HH:mm:ss')
+                                if comment.created 
+                                    small.pull-right= moment(comment.created).format('YYYY-MM-DD HH:mm:ss')
+
                             p.post-comment-content= comment.content
                 else
                     p.alert.alert-info 还没有评论
