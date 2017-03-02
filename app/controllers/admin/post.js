@@ -1,5 +1,7 @@
 var express = require('express'),
   router = express.Router(),
+  slug = require('slug'),
+  pinyin = require('pinyin'),
   mongoose = require('mongoose'),
   Post = mongoose.model('Post'),
   User = mongoose.model('User');
@@ -75,8 +77,52 @@ router.get('/add', function (req, res, next) {
   })
 });
 
-router.post('/add/:id', function (req, res, next) {
+router.post('/add', function (req, res, next) {
+
+  //https://www.npmjs.com/package/express-validator api文档
+  req.checkBody('title', '文章标题不能为空').notEmpty();
+  req.checkBody('category', '必须指定文章分类').notEmpty();
+  req.checkBody('content', '文章内容至少写几句').notEmpty();
   
+
+  var errors = req.validationErrors();
+  if (errors) {
+    return res.render('admin/post/add',{
+        title:req.body.title,
+        content:req.body.content,
+        errors:errors
+      });
+  }
+
+  var title = req.body.title.trim();
+  var category = req.body.category.trim();
+  var content = req.body.content;
+  //从数据库用户表中找一个用户做 添加动作
+  User.findOne({},function(err,author){
+    if(err) return next(err);
+    var post = new Post({
+      title:title,
+      slug: slug(pinyin(title)),
+      category:category,
+      content:content,
+      author:author,
+      published:true,
+      meta:{
+        favorates:0
+      },
+      comments: [],
+      created: new Date()
+    });
+    post.save(function(err,post){
+      if(err){
+        req.flash('error','文章保存失败');
+        return next(err);
+      }
+      req.flash('info','文章保存成功');
+      res.redirect('/admin/posts');
+    });
+  });
+
 });
 
 router.get('/edit/:id', function (req, res, next) {

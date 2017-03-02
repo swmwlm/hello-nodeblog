@@ -1,4 +1,6 @@
 $(document).ready(function(){
+
+	// post list page
 	var ndCategory=$('#js-category');
 	var ndAuthor = $('#js-author');
 	$('#js-filter-submit').on('click',function(){
@@ -19,4 +21,11 @@ $(document).ready(function(){
 		console.log(queryString.stringify(query));
 		window.location.url = window.location.origin + window.location.pathname + queryString.stringify(query);
 	});
+
+	// post add page 
+	// if($('#js-post-content').length>0){
+	// 如果定义了CKEDITOR,才去挂载
+	if(typeof CKEDITOR !== "undefined"){
+		CKEDITOR.replace( 'js-post-content' );
+	}
 });

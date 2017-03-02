@@ -15,6 +15,7 @@ var flash= require('connect-flash');
 var messages=require('express-messages');
 
 var Category=mongoose.model('Category');
+var expressValidator = require('express-validator');
 
 
 module.exports = function(app, config) {
@@ -49,6 +50,24 @@ module.exports = function(app, config) {
     extended: true
   }));
   app.use(cookieParser());
+
+  //express-validator 下面这个中间件 必须在 bodyParser之后
+  app.use(expressValidator({
+    errorFormatter: function(param, msg, value) {
+        var namespace = param.split('.')
+        , root    = namespace.shift()
+        , formParam = root;
+   
+      while(namespace.length) {
+        formParam += '[' + namespace.shift() + ']';
+      }
+      return {
+        param : formParam,
+        msg   : msg,
+        value : value
+      };
+    }
+  })); 
 
   // 目的：实现redirect 用户提示信息
   app.use(session({
