@@ -22,7 +22,7 @@ block content
         div.form-group
             label(for="content") 内容
             textarea#js-post-content.form-control(name="content",required="true")= post.content
-        button.btn.btn-lg.btn-info(type="submit")= post ? "保存修改":"发布文章"
+        button.btn.btn-lg.btn-info(type="submit")= post._id ? "保存修改":"发布文章"
 
 block scripts
     script(src="/js/ckeditor/ckeditor.js")

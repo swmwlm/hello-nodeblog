@@ -9,12 +9,48 @@ module.exports = function (app) {
 };
 
 router.get('/', function (req, res, next) {
-  Post.find({published:true})
+  var conditions = { published:true };
+  if(req.query.keyword){
+    /**
+    * 模糊搜索：主要用到了query.$or和query.$regex这两个find参数。
+    * 示例：
+    * query.or([{ color: 'red' }, { status: 'emergency' }])
+    * query.$regex用于实现模糊查询
+    *   { <field>: { $regex: /pattern/, $options: '<options>' } }
+    *   { <field>: /pattern/<options> }
+    *
+    * const keyword = this.params.keyword //从URL中传来的 keyword参数
+    * const reg = new RegExp(keyword, 'i') //不区分大小写
+    * const result = yield User.find(
+              {
+                  $or : [ //多条件，数组
+                      {nick : {$regex : reg}},
+                      {email : {$regex : reg}}
+                  ]
+              },
+              {
+                  password : 0
+              },
+              {
+                  sort : { _id : -1 },
+                  limit : 100
+              }
+        )
+    *
+    */
+
+    var regexp=new RegExp(req.query.keyword.trim(),'i');
+    var orArr=[{title:regexp},{content:regexp}];
+    conditions.$or=orArr; 
+  }
+
+  Post.find(conditions)
     .sort('-created')
     .populate('author')
     .populate('category')
     .exec(function (err, posts) {
       if (err) return next(err);
+      console.log(conditions);
 
       var pageNum=Math.abs(parseInt(req.query.page||1,10));
       var pageSize=10;
@@ -23,13 +59,15 @@ router.get('/', function (req, res, next) {
       if(pageNum>pageCount){
         pageNum=pageCount;
       }
+      console.log(posts.length);
 
       res.render('blog/index', {
         title: 'Node Blog Home',
         posts: posts.slice((pageNum-1)*pageSize,pageNum*pageSize),
         pageNum:pageNum,
         pageCount:pageCount,
-        pretty: true
+        pretty: true,
+        keyword:req.query.keyword
       });
   });
 });

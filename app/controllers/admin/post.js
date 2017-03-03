@@ -33,6 +33,11 @@ router.get('/', function (req, res, next) {
   if(req.query.author){
     conditions.author = req.query.author.trim();
   }
+  if(req.query.keyword){
+    var regexp=new RegExp(req.query.keyword.trim(),'i');
+    var orArr=[{title:regexp},{content:regexp}];
+    conditions.$or=orArr; 
+  }
 
   User.find({},function(err,authors){
     if(err) return next(err);
@@ -62,7 +67,8 @@ router.get('/', function (req, res, next) {
           authors:authors,
           filter: {
             category: req.query.category||"",
-            author: req.query.author||""
+            author: req.query.author||"",
+            keyword:req.query.keyword||"",
           },
           pretty: true
         });
@@ -92,18 +98,23 @@ router.post('/add', function (req, res, next) {
   req.checkBody('content', '文章内容至少写几句').notEmpty();
   
 
+  var title = req.body.title.trim();
+  var category = req.body.category.trim();
+  var content = req.body.content;
+
   var errors = req.validationErrors();
   if (errors) {
+    var retPost={};
+    //当校验失败，友好性返回用户之前的值
+    retPost.title=title;
+    retPost.content=content;
+    retPost.slug=slug(py);
     return res.render('admin/post/add',{
-        title:req.body.title,
-        content:req.body.content,
+        post:retPost,
         errors:errors
       });
   }
 
-  var title = req.body.title.trim();
-  var category = req.body.category.trim();
-  var content = req.body.content;
 
   var py=pinyin(title,{
       style:pinyin.STYLE_NORMAL,
@@ -195,11 +206,8 @@ router.post('/edit/:id', getPostById, function (req, res, next) {
   });
   
 });
-router.get('/delete/:id', function (req, res, next) {
-  if(!req.params.id){
-  	return next(new Error('no post id provided'));
-  }
-  Post.remove({_id:req.params.id}).exec(function(err,rowsRemoved){
+router.get('/delete/:id', getPostById, function (req, res, next) {
+  req.post.remove(function(err,rowsRemoved){
   	if(err){
   		return next(err);
   	}
@@ -209,7 +217,6 @@ router.get('/delete/:id', function (req, res, next) {
   		req.flash('success','文章删除失败');
   	}
   	res.redirect('/admin/posts');
-
   });
 });
 
@@ -217,7 +224,6 @@ function getPostById(req,res,next){
   if(!req.params.id){
     return next(new Error('no post id provided'));
   }
-  
   Post.findOne({ _id:req.params.id })
     .populate('category')
     .populate('author')
