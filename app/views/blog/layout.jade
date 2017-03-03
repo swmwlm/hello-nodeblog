@@ -7,28 +7,28 @@ append css
 block main
     block header
         .blog-masthead
-            .container
-                nav.blog-nav.pull-left
-                    if pageName=== '/posts'
-                        a.blog-nav-item.active(href="/") 首页
-                    else
-                        a.blog-nav-item(href="/") 首页
+          .container
+            nav.blog-nav.pull-left
+                if pageName=== '/posts'
+                    a.blog-nav-item.active(href="/") 首页
+                else
+                    a.blog-nav-item(href="/") 首页
 
-                    if pageName=== '/about'
-                        a.blog-nav-item.active(href="/about") 关于
-                    else
-                        a.blog-nav-item(href="/about") 关于
-                    
+                if pageName=== '/about'
+                    a.blog-nav-item.active(href="/about") 关于
+                else
+                    a.blog-nav-item(href="/about") 关于
 
-                    if pageName=== '/contact'
-                        a.blog-nav-item.active(href="/contact") 联系
-                    else
-                        a.blog-nav-item(href="/contact") 联系
-                form.navbar-form.pull-right(method="get",action="/posts")
-                  input.form-control(type='text',name='keyword',placeholder="搜索...",value=keyword)          
-        |       
-
-
+                if pageName=== '/contact'
+                    a.blog-nav-item.active(href="/contact") 联系
+                else
+                    a.blog-nav-item(href="/contact") 联系
+            nav.blog-nav.pull-right       
+              a.blog-nav-item(href="/admin/users/login") 登录
+              a.blog-nav-item(href="/admin/users/register") 注册     
+            form.navbar-form.pull-right(method="get",action="/posts")
+              input.form-control(type='text',name='keyword',placeholder="搜索...",value=keyword)
+                
     .container
         .row
             .col-sm-8.blog-main
@@ -78,4 +78,5 @@ block main
                 | .
             |       
             p
-                a(href="#") Back to top
+                a(href="#") 回到顶部
+
