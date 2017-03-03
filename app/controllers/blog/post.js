@@ -38,6 +38,7 @@ router.get('/view/:id', function (req, res, next) {
     return next(new Error('no post id provided'));
   }
   var conditions={};
+  // 支持slug访问
   try{
     conditions._id=mongoose.Types.ObjectId(req.params.id);
   }catch(err){

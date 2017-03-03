@@ -73,6 +73,13 @@ router.get('/', function (req, res, next) {
 
 router.get('/add', function (req, res, next) {
   res.render('admin/post/add',{
+    action:"/admin/posts/add",
+    post: {
+      _id:'',
+      category:{
+        _id:''
+      }
+    },
     pretty:true
   })
 });
@@ -93,17 +100,17 @@ router.post('/add', function (req, res, next) {
         errors:errors
       });
   }
-  var strTitle="中华人民共和国";
-  var py=pinyin(strTitle,{
-        style:pinyin.STYLE_NORMAL,
-        heteronym: false
-      }).map(function(item){
-        return item[0];
-      }).join(' ');
 
   var title = req.body.title.trim();
   var category = req.body.category.trim();
   var content = req.body.content;
+
+  var py=pinyin(title,{
+      style:pinyin.STYLE_NORMAL,
+      heteronym: false
+    }).map(function(item){
+      return item[0];
+    }).join(' ');
   //从数据库用户表中找一个用户做 添加动作
   User.findOne({},function(err,author){
     if(err) return next(err);
@@ -132,11 +139,60 @@ router.post('/add', function (req, res, next) {
 
 });
 
-router.get('/edit/:id', function (req, res, next) {
-  
+router.get('/edit/:id',getPostById, function (req, res, next) {
+  var post=req.post;
+  res.render('admin/post/add',{
+    post:post,
+    action:"/admin/posts/edit/"+post._id,
+    pretty:true
+  }) 
 });
 
-router.post('/edit/:id', function (req, res, next) {
+router.post('/edit/:id', getPostById, function (req, res, next) {
+  var post=req.post;
+
+  var title = req.body.title.trim();
+  var category = req.body.category.trim();
+  var content = req.body.content;
+  var py=pinyin(title,{
+    style:pinyin.STYLE_NORMAL,
+    heteronym: false
+  }).map(function(item){
+    return item[0];
+  }).join(' ');
+
+  //定义校验规则
+  req.checkBody('title', '文章标题不能为空').notEmpty();
+  req.checkBody('category', '必须指定文章分类').notEmpty();
+  req.checkBody('content', '文章内容至少写几句').notEmpty();
+  
+  //验证校验规则
+  var errors = req.validationErrors();
+  if (errors) {
+    var retPost=post;
+    //当校验失败，友好性返回用户之前的值
+    retPost.title=title;
+    retPost.content=content;
+    retPost.slug=slug(py);
+    return res.render('admin/post/add',{
+      post:retPost,
+      errors:errors
+    });
+  }
+
+  post.title=title;
+  post.category=category;
+  post.content=content;
+  post.slug=slug(py);
+
+  post.save(function(err,post){
+    if(err){
+      req.flash('error','文章编辑失败');
+      res.redirect('/admin/posts/edit/' + post._id);
+    }
+    req.flash('info','文章编辑成功');
+    res.redirect('/admin/posts');
+  });
   
 });
 router.get('/delete/:id', function (req, res, next) {
@@ -156,3 +212,21 @@ router.get('/delete/:id', function (req, res, next) {
 
   });
 });
+
+function getPostById(req,res,next){
+  if(!req.params.id){
+    return next(new Error('no post id provided'));
+  }
+  
+  Post.findOne({ _id:req.params.id })
+    .populate('category')
+    .populate('author')
+    .exec(function(err,post){
+    if(err) return next(err);
+    if(!post){
+      return next(new Error('post not found:',req.params.id));
+    }
+    req.post=post;
+    next();
+  });
+}
