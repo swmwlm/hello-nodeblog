@@ -93,6 +93,13 @@ router.post('/add', function (req, res, next) {
         errors:errors
       });
   }
+  var strTitle="中华人民共和国";
+  var py=pinyin(strTitle,{
+        style:pinyin.STYLE_NORMAL,
+        heteronym: false
+      }).map(function(item){
+        return item[0];
+      }).join(' ');
 
   var title = req.body.title.trim();
   var category = req.body.category.trim();
@@ -102,7 +109,7 @@ router.post('/add', function (req, res, next) {
     if(err) return next(err);
     var post = new Post({
       title:title,
-      slug: slug(pinyin(title)),
+      slug: slug(py),
       category:category,
       content:content,
       author:author,
