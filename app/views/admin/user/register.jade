@@ -5,7 +5,10 @@ block content
     h2.form-signin-heading 管理员注册
       small.pull-right
         a(href="/admin/users/login") 登录
-    |         
+    
+    //- 展示出flash过来的消息
+    != messages()
+
     label.sr-only(for="email") 邮箱
     |         
     input.email.form-control(name="email",type="email", placeholder="Email address", required="", autofocus="",value=email)

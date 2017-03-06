@@ -2,10 +2,14 @@ extend ../layout_user
 block content
 
   form.form-signin(method="post", action="/admin/users/login")
+
     h2.form-signin-heading 管理员登录
       small.pull-right
         a(href="/admin/users/register") 注册
-    |         
+    
+    //- 展示出flash过来的消息
+    != messages()
+          
     label.sr-only(for="email") 邮箱
     |         
     input.email.form-control(name="email",type="email", placeholder="Email address", required="", autofocus="")

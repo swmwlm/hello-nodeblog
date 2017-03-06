@@ -5,8 +5,6 @@ append css
     link(rel='stylesheet', href='/css/user.css')
 
 block main
-    //- 展示出flash过来的消息
-    != messages()
     //- 当使用express-validator，校验出错的时候展示错误
     if errors && errors.length
         div.errors
