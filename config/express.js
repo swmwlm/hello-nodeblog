@@ -13,6 +13,7 @@ var mongoose = require('mongoose');
 var session= require('express-session');
 var flash= require('connect-flash');
 var messages=require('express-messages');
+var passport=require('passport');
 
 var Category=mongoose.model('Category');
 var expressValidator = require('express-validator');
@@ -76,6 +77,10 @@ module.exports = function(app, config) {
     saveUninitialized: true,
     cookie:{ secure:false}
   }));
+
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   app.use(flash());
   app.use(function(req,res,next){
     res.locals.messages= messages(req,res);

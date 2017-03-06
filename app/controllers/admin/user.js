@@ -2,7 +2,8 @@ var express = require('express'),
   router = express.Router(),
   mongoose = require('mongoose'),
   md5 = require('md5'),
-  User = mongoose.model('User');
+  User = mongoose.model('User'),
+  passport = require('passport');
 
 module.exports = function (app) {
   app.use('/admin/users', router);
@@ -13,12 +14,9 @@ router.get('/login', function (req, res, next) {
   	pretty:true
   });
 });
-router.post('/login', function (req, res, next) {
-  res.jsonp(req.body);
-  return;
-  res.render('admin/user/login',{
-  	pretty:true
-  });
+router.post('/login', passport.authenticate('local', { failureRedirect: '/admin/users/login' }), function (req, res, next) {
+  console.log('user login success:', req.body);
+  res.redirect('/admin/posts');
 });
 
 
