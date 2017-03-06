@@ -4,6 +4,7 @@ var express = require('express'),
   pinyin = require('pinyin'),
   mongoose = require('mongoose'),
   Post = mongoose.model('Post'),
+  auth = require('./user'),
   User = mongoose.model('User');
   Category = mongoose.model('Category');
 
@@ -11,7 +12,7 @@ module.exports = function (app) {
   app.use('/admin/posts', router);
 };
 
-router.get('/', function (req, res, next) {
+router.get('/', auth.requireLogin, function (req, res, next) {
   // sort 
   var sortby=req.query.sortby ? req.query.sortby : "created";
   var sortdir = req.query.sortdir ? req.query.sortdir : "desc";
@@ -77,7 +78,7 @@ router.get('/', function (req, res, next) {
 });
 
 
-router.get('/add', function (req, res, next) {
+router.get('/add', auth.requireLogin, function (req, res, next) {
   res.render('admin/post/add',{
     action:"/admin/posts/add",
     post: {
@@ -90,7 +91,7 @@ router.get('/add', function (req, res, next) {
   })
 });
 
-router.post('/add', function (req, res, next) {
+router.post('/add', auth.requireLogin, function (req, res, next) {
 
   //https://www.npmjs.com/package/express-validator api文档
   req.checkBody('title', '文章标题不能为空').notEmpty();
@@ -150,7 +151,7 @@ router.post('/add', function (req, res, next) {
 
 });
 
-router.get('/edit/:id',getPostById, function (req, res, next) {
+router.get('/edit/:id',auth.requireLogin, getPostById, function (req, res, next) {
   var post=req.post;
   res.render('admin/post/add',{
     post:post,
@@ -159,7 +160,7 @@ router.get('/edit/:id',getPostById, function (req, res, next) {
   }) 
 });
 
-router.post('/edit/:id', getPostById, function (req, res, next) {
+router.post('/edit/:id', auth.requireLogin, getPostById, function (req, res, next) {
   var post=req.post;
 
   var title = req.body.title.trim();
@@ -206,7 +207,7 @@ router.post('/edit/:id', getPostById, function (req, res, next) {
   });
   
 });
-router.get('/delete/:id', getPostById, function (req, res, next) {
+router.get('/delete/:id', auth.requireLogin, getPostById, function (req, res, next) {
   req.post.remove(function(err,rowsRemoved){
   	if(err){
   		return next(err);

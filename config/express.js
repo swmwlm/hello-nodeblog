@@ -11,15 +11,18 @@ var compress = require('compression');
 var methodOverride = require('method-override');
 var mongoose = require('mongoose');
 var session= require('express-session');
+var MongoStore = require('connect-mongo')(session);
+
 var flash= require('connect-flash');
 var messages=require('express-messages');
 var passport=require('passport');
 
 var Category=mongoose.model('Category');
+var User=mongoose.model('User');
 var expressValidator = require('express-validator');
 
 
-module.exports = function(app, config) {
+module.exports = function(app, config, connection) {
   var env = process.env.NODE_ENV || 'development';
   app.locals.ENV = env;
   app.locals.ENV_DEVELOPMENT = env == 'development';
@@ -75,7 +78,8 @@ module.exports = function(app, config) {
     secret: 'nodeblog',
     resave: false,
     saveUninitialized: true,
-    cookie:{ secure:false}
+    cookie:{ secure:false},
+    store: new MongoStore({ mongooseConnection: connection })
   }));
 
   app.use(passport.initialize());
@@ -83,7 +87,26 @@ module.exports = function(app, config) {
 
   app.use(flash());
   app.use(function(req,res,next){
+    // passport use http://passportjs.org/docs/logout
+    req.user=null; 
+    if(req.session.passport && req.session.passport.user){
+      User.findById(req.session.passport.user, function(err,user){
+        if(err){
+          return next(err);
+        }
+        //把查询出来的user的密码置空，再赋值给req请求域
+        user.password=null;
+        req.user=user;
+        next();
+      });
+    }else{
+      next();
+    } 
+  });
+  app.use(function(req,res,next){
     res.locals.messages= messages(req,res);
+    app.locals.user = req.user;
+    console.log(req.session,app.locals.user);
     next();
   });
 

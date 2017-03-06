@@ -8,6 +8,17 @@ var express = require('express'),
 module.exports = function (app) {
   app.use('/admin/users', router);
 };
+/**
+* 暴露出 一个中间件，可以在其他地方使用
+*/
+module.exports.requireLogin = function (req, res, next) {
+  // req.user ;passport use http://passportjs.org/docs/logout
+  if(req.user) {
+    next();
+  }else{
+    next(new Error('登录用户才能访问'));
+  }
+};
 
 router.get('/login', function (req, res, next) {
   res.render('admin/user/login',{
@@ -15,7 +26,7 @@ router.get('/login', function (req, res, next) {
   });
 });
 router.post('/login', passport.authenticate('local', { failureRedirect: '/admin/users/login' }), function (req, res, next) {
-  console.log('user login success:', req.body);
+  // console.log('user login success:', req.body);
   res.redirect('/admin/posts');
 });
 
@@ -59,6 +70,7 @@ router.post('/register', function (req, res, next) {
 });
 
 router.get('/logout', function (req, res, next) {
-  // TODO
+  // password api http://passportjs.org/docs/logout
+  req.logout();
   res.redirect("/");
 });

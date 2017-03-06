@@ -3,6 +3,7 @@ var express = require('express'),
   slug = require('slug'),
   pinyin = require('pinyin'),
   mongoose = require('mongoose'),
+  auth = require('./user'),
   Post = mongoose.model('Post'),
   Category = mongoose.model('Category');
 
@@ -10,12 +11,12 @@ module.exports = function (app) {
   app.use('/admin/categories', router);
 };
 
-router.get('/', function (req, res, next) {
+router.get('/', auth.requireLogin, function (req, res, next) {
   res.render('admin/category/index', {
     pretty: true
   });
 });
-router.get('/add', function (req, res, next) {
+router.get('/add', auth.requireLogin, function (req, res, next) {
   res.render('admin/category/add', {
     action:"/admin/categories/add",
     pretty: true,
@@ -24,7 +25,7 @@ router.get('/add', function (req, res, next) {
     },
   });
 });
-router.post('/add', function (req, res, next) {
+router.post('/add', auth.requireLogin, function (req, res, next) {
   req.checkBody('name', '分类名称不能为空').notEmpty();
 
   var name = req.body.name.trim();
@@ -61,7 +62,7 @@ router.post('/add', function (req, res, next) {
     res.redirect('/admin/categories');
   });
 });
-router.get('/edit/:id',getCategoryById, function (req, res, next) {
+router.get('/edit/:id', auth.requireLogin, getCategoryById, function (req, res, next) {
   var category=req.category;
   res.render('admin/category/add',{
     category:category,
@@ -70,7 +71,7 @@ router.get('/edit/:id',getCategoryById, function (req, res, next) {
   })   
 });
 
-router.post('/edit/:id', getCategoryById, function (req, res, next) {  
+router.post('/edit/:id', auth.requireLogin, getCategoryById, function (req, res, next) {  
   var category=req.category;
 
   var name = req.body.name.trim();
@@ -108,7 +109,7 @@ router.post('/edit/:id', getCategoryById, function (req, res, next) {
     res.redirect('/admin/categories');
   }); 
 });
-router.get('/delete/:id', getCategoryById, function (req, res, next) {
+router.get('/delete/:id', auth.requireLogin, getCategoryById, function (req, res, next) {
   req.category.remove(function(err,rowsRemoved){
     if(err){
       return next(err);
